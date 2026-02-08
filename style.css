@@ -1,0 +1,88 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+}
+
+h1 { margin: 0; font-size: 2.5rem; letter-spacing: 5px; }
+h2 { color: #d81b60; margin: 10px 0 5px; font-size: 1.5rem; }
+.subtitle { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
+
+input[type="date"] {
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid #f8bbd0;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #444;
+    outline: none;
+}
+input[type="date"]:focus { border-color: #d81b60; }
+
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    max-height: 450px;
+    overflow-y: auto;
+    margin-top: 20px;
+    padding-right: 5px; /* Scrollbar payı */
+}
+
+/* Scrollbar özelleştirme */
+.slots-grid::-webkit-scrollbar { width: 6px; }
+.slots-grid::-webkit-scrollbar-thumb { background-color: #f8bbd0; border-radius: 10px; }
+
+.slot {
+    padding: 12px 5px;
+    background-color: #fff;
+    border: 2px solid #e3f2fd;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.slot:hover { transform: translateY(-3px); border-color: #2196f3; }
+
+/* Slot İçeriği */
+.tr-time {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1565c0;
+}
+.it-time {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* Dolu Slot */
+.slot.taken {
+    background-color: #ffebee;
+    border-color: #ffcdd2;
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none; /* Tıklanmasını engeller */
+}
+.slot.taken .tr-time { color: #c62828; text-decoration: line-through; }
