@@ -1,4 +1,4 @@
-// --- FIREBASE IMPORTLARI (CDN ÜZERİNDEN) ---
+// --- FIREBASE IMPORTLARI ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { 
@@ -6,7 +6,8 @@ import {
     doc, 
     getDoc, 
     setDoc, 
-    arrayUnion 
+    arrayUnion,
+    arrayRemove // <-- YENİ EKLENDİ: Silme işlemi için gerekli
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // --- SENİN FIREBASE AYARLARIN ---
@@ -29,21 +30,15 @@ const db = getFirestore(app);
 const datePicker = document.getElementById('datePicker');
 const slotsContainer = document.getElementById('slotsContainer');
 
-// --- BAŞLANGIÇ AYARLARI ---
-// Bugünü seçili yap
+// --- BAŞLANGIÇ ---
 datePicker.value = new Date().toISOString().split('T')[0];
-
-// Olay Dinleyicileri
 datePicker.addEventListener('change', loadSlots);
-
-// Sayfa açılınca yükle
 loadSlots();
 
-// --- ZAMAN DÖNÜŞTÜRÜCÜ (TR -> IT) ---
+// --- ZAMAN DÖNÜŞTÜRÜCÜ ---
 function getItalyTime(dateStr, timeStr) {
     const trDateTimeString = `${dateStr}T${timeStr}:00+03:00`;
     const dateObj = new Date(trDateTimeString);
-    
     return dateObj.toLocaleTimeString('tr-TR', {
         timeZone: 'Europe/Rome',
         hour: '2-digit',
@@ -56,9 +51,8 @@ async function loadSlots() {
     const selectedDate = datePicker.value;
     if (!selectedDate) return;
 
-    slotsContainer.innerHTML = '<p class="loading-text">Saatler yükleniyor...</p>';
+    slotsContainer.innerHTML = '<p class="loading-text">Takvim güncelleniyor...</p>';
 
-    // Veritabanı referansı (Yeni Syntax)
     const docRef = doc(db, "appointments", selectedDate);
     let takenSlots = [];
     
@@ -68,30 +62,21 @@ async function loadSlots() {
             takenSlots = docSnap.data().times || [];
         }
     } catch (error) {
-        console.error("Veri çekme hatası:", error);
-        slotsContainer.innerHTML = '<p style="color:red">Bağlantı hatası!</p>';
-        return;
+        console.error("Hata:", error);
     }
 
-    // Arayüzü temizle
     slotsContainer.innerHTML = '';
 
-    // Saatleri oluştur (09:00 - 23:45 arası)
     let startHour = 9;
     let endHour = 24;
 
     for (let h = startHour; h < endHour; h++) {
         for (let m = 0; m < 60; m += 15) {
-            
-            // Saat formatlama
             let hourStr = h.toString().padStart(2, '0');
             let minStr = m.toString().padStart(2, '0');
             let trTime = `${hourStr}:${minStr}`;
-
-            // İtalya saati hesaplama
             let itTime = getItalyTime(selectedDate, trTime);
 
-            // Kart oluşturma
             const div = document.createElement('div');
             div.className = 'slot';
             
@@ -100,13 +85,17 @@ async function loadSlots() {
                 <span class="it-time">🇮🇹 ${itTime}</span>
             `;
 
-            // Doluluk kontrolü
-            if (takenSlots.includes(trTime)) {
+            const isTaken = takenSlots.includes(trTime);
+
+            if (isTaken) {
                 div.classList.add('taken');
-                div.title = "Bu saat dolu";
+                div.title = "İptal etmek için tıkla";
+                // Dolu olsa bile tıklanabilir yapıyoruz, ama parametre olarak 'true' (silme modu) gönderiyoruz
+                div.addEventListener('click', () => handleSlotClick(selectedDate, trTime, true));
             } else {
-                // Tıklama olayı (Fonksiyonu aşağıda tanımladık ama module içinde olduğu için doğrudan atıyoruz)
-                div.addEventListener('click', () => toggleSlot(selectedDate, trTime, itTime));
+                div.title = "Randevu al";
+                // Boş ise tıklanınca 'false' (ekleme modu) gönderiyoruz
+                div.addEventListener('click', () => handleSlotClick(selectedDate, trTime, false));
             }
 
             slotsContainer.appendChild(div);
@@ -114,24 +103,39 @@ async function loadSlots() {
     }
 }
 
-async function toggleSlot(date, trTime, itTime) {
-    const msg = `Randevu Oluşturulsun mu?\n\n🇹🇷 TR: ${trTime}\n🇮🇹 IT: ${itTime}`;
+// Yeni: Tek fonksiyon hem ekleme hem silme yapıyor
+async function handleSlotClick(date, trTime, isDeleting) {
+    const docRef = doc(db, "appointments", date);
     
-    if (confirm(msg)) {
-        try {
-            const docRef = doc(db, "appointments", date);
-            
-            // Veriyi kaydet (Yeni Syntax: arrayUnion ve setDoc)
-            await setDoc(docRef, {
-                times: arrayUnion(trTime)
-            }, { merge: true });
-            
-            alert("Randevu başarıyla alındı! ❤️");
-            loadSlots(); // Listeyi yenile
-            
-        } catch (error) {
-            console.error("Kayıt hatası:", error);
-            alert("Bir hata oluştu: " + error.message);
+    if (isDeleting) {
+        // --- SİLME İŞLEMİ ---
+        const confirmDelete = confirm(`Saat ${trTime} randevusunu İPTAL ETMEK istiyor musun? 🗑️`);
+        if (confirmDelete) {
+            try {
+                await setDoc(docRef, {
+                    times: arrayRemove(trTime) // Listeden çıkar
+                }, { merge: true });
+                alert("Randevu iptal edildi.");
+                loadSlots();
+            } catch (error) {
+                console.error("Silme hatası:", error);
+                alert("Bir hata oluştu.");
+            }
+        }
+    } else {
+        // --- EKLEME İŞLEMİ ---
+        const confirmAdd = confirm(`Saat ${trTime} için randevu OLUŞTURUYOR musun? ❤️`);
+        if (confirmAdd) {
+            try {
+                await setDoc(docRef, {
+                    times: arrayUnion(trTime) // Listeye ekle
+                }, { merge: true });
+                alert("Randevu alındı! ❤️");
+                loadSlots();
+            } catch (error) {
+                console.error("Ekleme hatası:", error);
+                alert("Bir hata oluştu.");
+            }
         }
     }
 }
