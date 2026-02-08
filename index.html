@@ -3,23 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🇹🇷 & 🇮🇹 Randevu Sistemi</title>
+    <title>Musab & Nazan Randevu</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="container">
-        <h1>🇹🇷 ❤️ 🇮🇹</h1>
-        <h2>Görüşme Planlayıcı</h2>
-        <p class="subtitle">Senin saatin (TR) ve Pisa saati (IT) yan yana.</p>
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <div class="container glass-effect">
+        <h1 class="special-title">
+            Musab İkbal <span class="heart-beat">❤️</span> Nazan
+        </h1>
+        
+        <div class="info-box">
+            <p>
+                <span class="flag">🇹🇷</span> Senin Saatin
+                <span class="separator">|</span>
+                <span class="flag">🇮🇹</span> Pisa Saati
+            </p>
+        </div>
         
         <div class="date-wrapper">
+            <label for="datePicker">Tarih Seçin:</label>
             <input type="date" id="datePicker">
         </div>
         
         <div id="slotsContainer" class="slots-grid">
-            <p class="loading-text">Yükleniyor...</p>
+            <p class="loading-text">Takvim yükleniyor...</p>
         </div>
     </div>
 
