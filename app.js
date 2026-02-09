@@ -5,7 +5,6 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // --- FIREBASE AYARLARI ---
 const firebaseConfig = {
-  apiKey: "AIzaSyBdvhAxVobu8VvADo1JpQjo_jr68EzzEdg",
   authDomain: "randevu-487f8.firebaseapp.com",
   projectId: "randevu-487f8",
   storageBucket: "randevu-487f8.firebasestorage.app",
